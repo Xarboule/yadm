@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo -e "\n\nyadm: Install default config (Arch Desktop)\n"
+
