@@ -441,24 +441,24 @@ Setup for Rust ([[https://robert.kra.hn/posts/rust-emacs-setup/][tutorial]])
 
         ;; racer-mode for getting IDE like features for rust-mode
         ;; https://github.com/racer-rust/emacs-racer
-        (use-package racer
-          :hook (rust-mode . racer-mode)
-          :config
-          (progn
-            ;; package does this by default ;; set racer rust source path environment variable
-            ;; (setq racer-rust-src-path (getenv "RUST_SRC_PATH"))
-            (defun my-racer-mode-hook ()
-              (set (make-local-variable 'company-backends)
-                   '((company-capf company-files)))
-              (setq company-minimum-prefix-length 1)
-              (setq indent-tabs-mode nil))
-
-            (add-hook 'racer-mode-hook 'my-racer-mode-hook)
-
-            ;; enable company and eldoc minor modes in rust-mode (racer-mode)
-            (add-hook 'racer-mode-hook #'company-mode)
-            (add-hook 'racer-mode-hook #'eldoc-mode)))
-
+;;(use-package racer
+;;  :hook (rust-mode . racer-mode)
+;;  :config
+;;  (progn
+;;    ;; package does this by default ;; set racer rust source path environment variable
+;;    ;; (setq racer-rust-src-path (getenv "RUST_SRC_PATH"))
+;;    (defun my-racer-mode-hook ()
+;;      (set (make-local-variable 'company-backends)
+;;           '((company-capf company-files)))
+;;      (setq company-minimum-prefix-length 1)
+;;      (setq indent-tabs-mode nil))
+;;
+;;    (add-hook 'racer-mode-hook 'my-racer-mode-hook)
+;;
+;;    ;; enable company and eldoc minor modes in rust-mode (racer-mode)
+;;    (add-hook 'racer-mode-hook #'company-mode)
+;;    (add-hook 'racer-mode-hook #'eldoc-mode)))
+;;
         (add-hook 'rust-mode-hook 'flycheck-mode)
         (add-hook 'flycheck-mode-hook 'flycheck-rust-setup)
 
