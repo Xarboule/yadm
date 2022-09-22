@@ -8,15 +8,10 @@
   Set repositories :
   
   #+begin_src emacs-lisp
-            (require 'package)
-            (setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
-                                     ("melpa" . "https://melpa.org/packages/")
-                                     ("org" . "http://orgmode.org/elpa/")))  
-
+    (require 'package)
+    (setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                             ("melpa" . "https://melpa.org/packages/")))  
   #+end_src
-
-  #+RESULTS:
-  : ((gnu . https://elpa.gnu.org/packages/) (melpa . https://melpa.org/packages/) (org . http://orgmode.org/elpa/))
 
 I use =use-package= to install and configure my packages. My =init.el= includes the
   initial setup for =package.el= and ensures that =use-package= is installed, since I
@@ -732,23 +727,26 @@ I'd like to open =file:= links in Org with the applications defined in my
 tells Org to open those links with the mailcap-defined applications.
 
 #+begin_src emacs-lisp
-  (use-package org
-    :ensure org-plus-contrib
-    :config
-    (require 'org-tempo)
+  ;; (use-package org
+  ;;   :ensure org-plus-contrib
+  ;;   :config
+  ;;   (require 'org-tempo)
 
-    (add-hook 'org-mode-hook
-              '(lambda ()
-                 (setq mailcap-mime-data '())
-                 (mailcap-parse-mailcap "~/.mailcap")
-                 (setq org-file-apps
-                       '((remote . emacs)
-                         ("mobi" . "fbreader %s")
-                         (system . mailcap)
-                         ("md" . emacs)
-                         ("org" . emacs)
-                         (t . mailcap))))))
+  ;;   (add-hook 'org-mode-hook
+  ;;             '(lambda ()
+  ;;                (setq mailcap-mime-data '())
+  ;;                (mailcap-parse-mailcap "~/.mailcap")
+  ;;                (setq org-file-apps
+  ;;                      '((remote . emacs)
+  ;;                        ("mobi" . "fbreader %s")
+  ;;                        (system . mailcap)
+  ;;                        ("md" . emacs)
+  ;;                        ("org" . emacs)
+  ;;                        (t . mailcap))))))
+  (use-package org)
 #+end_src
+
+#+RESULTS:
 
 I'd like the initial scratch buffer to be in Org:
 
