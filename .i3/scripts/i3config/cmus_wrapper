@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Give this script to cmus_status_display command to update bar
+
+cmus_start() {
+  ps -e | grep -v "$$" | grep -E ' cmus$'
+  if [ "$?" = 0 ]; then
+    cmus-remote -u
+  else
+    tmux new-session -s cmus -d cmus
+  fi
+}
+
+cmus_open() {
+  i3-msg "exec urxvt -e zsh -c 'i3-msg fullscreen & tmux attach-session -d -t cmus'"
+}
+
+while getopts "soqpn" arg
+do
+  case $arg in
+    s) cmus_start ;;
+    o) cmus_open ;;
+    q) cmus-remote -C "quit" ;;
+    p) cmus-remote --prev ;;
+    n) cmus-remote --next ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+pkill -RTMIN+10 i3blocks

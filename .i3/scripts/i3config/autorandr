@@ -1,0 +1,89 @@
+#!/bin/bash
+
+sed_oneliner=$(cat <<EOL
+/^.* connected/{
+s/^\(.*\) connected.*/\1%-/
+H
+}
+
+/.*\*/{
+g
+s/\([A-Za-z]\+[-0-9]\+\)%-\$/\1%+/
+h
+}
+\${g;s/^\n//;p}
+EOL
+            )
+
+usage() {
+  cat <<EOL
+Usage: $0 [-d primary_display] [-p relative_position]
+Move secondary display from output to output while keeping
+primary display in place.
+
+primary_display is the xrandr name of the primary display
+relative_position may be one of left, right, off
+EOL
+  exit 0
+}
+
+
+# all_off(primary)
+all_off() {
+  list=$(xrandr | sed -n "$sed_oneliner")
+  for line in $list; do
+    output=$(echo "$line" | cut -d\% -f 1)
+    state=$(echo "$line" | cut -d\% -f 2)
+
+    if [ "$state" = "+" ] && [ "$output" != "$1" ]; then
+      xrandr --output "$output" --off
+    fi
+  done
+}
+
+# next_on(primary, place)
+next_on() {
+  list=$(xrandr | sed -n "$sed_oneliner")
+  for line in $list; do
+    output=$(echo "$line" | cut -d\% -f 1)
+    state=$(echo "$line" | cut -d\% -f 2)
+
+    if [ "$state" = "+" ]; then
+      to_off="$output"
+      to_on=""
+    elif [ -n "$to_off" ] && [ -z "$to_on" ]; then
+      to_on="$output"
+    fi
+  done
+
+  if [ "$to_off" != "$1" ]; then
+    xrandr --output "$to_off" --off
+  fi
+
+  if [ -n "$to_on" ]; then
+    xrandr --output "$to_on" --auto && xrandr --output "$to_on" "$2" "$1"
+  fi
+}
+
+primary="eDP-1"
+method="next_on"
+place="--right-of"
+while getopts "hd:p:" arg; do
+  case $arg in
+    h) usage ;;
+    d) primary="$OPTARG" ;;
+    p)
+      case "$OPTARG" in
+        "off") method=all_off; place="" ;;
+        "left") place="--left-of" ;;
+        "right") place="--right-of" ;;
+        "above") place="--above" ;;
+        "below") place="--below" ;;
+        "same") place="--same-as" ;;
+        *) printf "$OPTARG is not a valid option" >&2 ;;
+      esac
+      ;;
+  esac
+done
+
+$method "$primary" "$place"

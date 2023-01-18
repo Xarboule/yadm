@@ -1,0 +1,23 @@
+#!/bin/bash
+
+fontsize() {
+  if [ -n "$1" ]; then
+    printf "\033]710;xft:Monospace-%s:antialias=true\033\\" "$1"
+    printf "\033]711;xft:Monospace-%s:antialias=true:bold\033\\" "$1"
+    printf "\033]712;xft:Monospace-%s:antialias=true:italic\033\\" "$1"
+    printf "\033]713;xft:Monospace-%s:antialias=true:bold:italic\033\\" "$1"
+  fi
+}
+
+unset cmd
+while getopts "f:an" arg
+do
+  case $arg in
+    f) cmd="fontsize $OPTARG ; " ;;
+    a) cmd+='tmux attach -t' ;;
+    n) cmd+='tmux new-session -s' ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+eval "$cmd $1"

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+termopen=~/.i3/scripts/i3config/term-open
+named_sessions=`tmux list-sessions | egrep -v '^[0-9]+' | grep -v '(attached)' | grep -v 'mus' | cut -d: -f 1`
+sessions=`tmux list-sessions | grep -v '(attached)' | grep -v 'mus' | cut -d: -f 1`
+chosen=$(echo -e "$named_sessions\nchange font" | dmenu -p "tmux#")
+
+if [ -n "$chosen" ]; then
+  if [ "$chosen" = "change font" ]; then
+    size=" -f $(seq 9 2 19 | dmenu -p "tmux->size#")"
+    chosen=$(echo -e "$named_sessions" | dmenu -p "tmux#")
+  fi
+
+  contains=$(echo -e "$sessions" | grep "$chosen")
+  if [ -n "$contains" ]; then
+    i3-msg "exec urxvt -e zsh -c \"$termopen${size} -a $chosen\""
+  else
+    i3-msg "exec urxvt -e zsh -c \"$termopen${size} -n $chosen\""
+  fi
+fi

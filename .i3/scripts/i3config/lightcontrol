@@ -1,0 +1,45 @@
+#!/bin/bash
+
+usage() {
+  cat <<EOL
+Usage: $0 [-p sys_path] [-i incr] <-u|-d>
+Increase or decrease screen backlight (-u for up, -d for down)
+
+sys_path is the path to linux /sys brightness resource
+incr is the percentage of which to change backlight (default 5%)
+EOL
+  exit 0
+}
+
+bright_path="/sys/class/backlight/intel_backlight/brightness"
+max_bright_path="/sys/class/backlight/intel_backlight/max_brightness"
+increment=5
+
+unset sign
+while getopts "p:i:udh" arg; do
+  case $arg in
+    p)
+      bright_path="$OPTARG"
+      max_bright_path="${OPTARG/brightness/max_brightness}"
+      ;;
+    i)
+      case $OPTARG in
+        ''|*[!0-9]*) increment=5 ;;
+        *) increment=$2 ;;
+      esac
+      ;;
+    u) sign="+" ;;
+    d) sign='-' ;;
+    h) usage ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+if [ -z "$sign" ]; then
+  usage
+fi
+
+percent=$(expr $(expr $(cat "$max_bright_path") \* $increment) / 100)
+echo "$(expr $(cat $bright_path) $sign $percent)" > "$bright_path"
+pkill -10 brightness

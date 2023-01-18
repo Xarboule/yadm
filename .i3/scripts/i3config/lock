@@ -1,0 +1,6 @@
+#!/bin/bash
+
+scrot lok.png
+convert lok.png -blur 0x5 lok.png
+i3lock -f -i lok.png
+rm lok.png

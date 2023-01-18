@@ -1,0 +1,9 @@
+#!/bin/bash
+
+running=`systemctl --user --state=waiting --no-legend | grep mbsync.timer`
+
+if [ -z "$running" ]; then
+  systemctl --user start mbsync.timer
+else
+  systemctl --user stop mbsync.timer
+fi

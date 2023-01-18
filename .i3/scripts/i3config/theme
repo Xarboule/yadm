@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ $(stat -L -c "%d:%i" ~/.Xresources) == $(stat -L -c "%d:%i" ~/.config/theme/current) ]; then
+  rm ~/.config/theme/current
+  ln -s Xresources_alt ~/.config/theme/current
+  xrdb ~/.config/theme/current
+else
+  rm ~/.config/theme/current
+  ln -s ~/.Xresources ~/.config/theme/current
+  xrdb ~/.config/theme/current
+fi
