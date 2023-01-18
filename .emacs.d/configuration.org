@@ -36,13 +36,6 @@ Always compile packages, and use the newest version available.
   (setq load-prefer-newer t)
 #+end_src
 
-Disable TLS 1.3; ELPA has higher standards. That'll be the default in Emacs
-26.3, I think, but I'm not there yet.
-
-#+begin_src emacs-lisp
-  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
-#+end_src
-
 Disable deprecation warnings about =cl=. The =cl= library has been deprecated, but
 lots of packages still use it. I can't control that, but I can disable the
 warnings.
@@ -52,39 +45,20 @@ warnings.
 #+end_src
 
 * Utility
+
 	#+begin_src emacs-lisp
 		(defun hrs/append-to-path (path)
 			"Add a path both to the $PATH variable and to Emacs' exec-path."
 			(setenv "PATH" (concat (getenv "PATH") ":" path))
 			(add-to-list 'exec-path path))
 	#+end_src
-  
-** Emojis
-
-#+begin_src emacs-lisp
-
-  (use-package emojify
-  :init
-  (setq emojify-display-style 'unicode)
-  (setq emojify-emoji-styles '(unicode))
-  )
-
-#+end_src
-
-* Set personal information
-
-** Who am I? Where am I?
-
-#+begin_src emacs-lisp
-  (setq user-full-name "Rémi Dulong"
-        user-mail-address "remi.dulong@unine.ch")
-#+end_src
 
 * UI preferences
+
 ** Fonts
 #+begin_src emacs-lisp
-  (add-to-list 'default-frame-alist '(font .  "Droid Sans Mono-18" ))
-  (set-face-attribute 'default t :font  "Droid Sans Mono-18" )
+  (add-to-list 'default-frame-alist '(font .  "Inconsolata-16" ))
+  (set-face-attribute 'default t :font  "Inconsolata-16" )
 #+end_src
 ** Line numbers
 
@@ -112,11 +86,12 @@ warnings.
 ** Tweak window chrome
 
 I don't usually use the menu or scroll bar, and they take up useful space.
+Only for emacs GUI.
 
 #+begin_src emacs-lisp
-  (tool-bar-mode 0)
-  (menu-bar-mode 0)
-  (scroll-bar-mode -1)
+  ;(tool-bar-mode 0)
+  ;(menu-bar-mode 0)
+  ;(scroll-bar-mode -1)
 #+end_src
 
 There's a tiny scroll bar that appears in the minibuffer window. This disables
@@ -125,14 +100,6 @@ that:
 #+begin_src emacs-lisp
   (set-window-scroll-bars (minibuffer-window) nil nil)
 #+end_src
-** Use fancy lambdas
-
-Why not?
-
-#+begin_src emacs-lisp
-  (global-prettify-symbols-mode t)
-#+end_src
-
 ** Load up a theme
 
 Zenburn theme.
@@ -162,125 +129,20 @@ pairing or presenting code.
   (global-hl-line-mode)
 #+end_src
 
-** Highlight uncommitted changes
-
-Use the =diff-hl= package to highlight changed-and-uncommitted lines when
-programming.
+* Set personal information
+** Who am I? Where am I?
 
 #+begin_src emacs-lisp
- ; (use-package diff-hl
- ;   :config
- ;   (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
- ;   (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode))
+  (setq user-full-name "Rémi Dulong"
+        user-mail-address "remi.dulong@unine.ch")
 #+end_src
 
 * Programming environments
-
-I like shallow indentation, but tabs are displayed as 8 characters by default.
-This reduces that.
-
-#+begin_src emacs-lisp
-  (setq-default tab-width 2)
-#+end_src
-
-Treating terms in CamelCase symbols as separate words makes editing a little
-easier for me, so I like to use =subword-mode= everywhere.
-
-#+begin_src emacs-lisp
-  (use-package subword
-    :config (global-subword-mode 1))
-#+end_src
-
-Compilation output goes to the =*compilation*= buffer. I rarely have that window
-selected, so the compilation output disappears past the bottom of the window.
-This automatically scrolls the compilation window so I can always see the
-output.
-
-#+begin_src emacs-lisp
-  (setq compilation-scroll-output t)
-#+end_src
-
-I use =eglot= as my LSP client.
-
-#+begin_src emacs-lisp
-  (use-package eglot)
-#+end_src
-
-** Lisps
-
-*** Racket
-
-#+begin_src emacs-lisp
-  (use-package geiser
-    :config (setq geiser-active-implementations '(racket)))
-
-  (use-package racket-mode
-    :hook (racket-mode . racket-xp-mode)
-    :mode "\\.rkt\\'")
-#+end_src
-
-*** All Lisps
-
-I like to use =paredit= in Lisp modes to balance parentheses (and more!).
-
-#+begin_src emacs-lisp
-  (use-package paredit)
-#+end_src
-
-=rainbow-delimiters= is convenient for coloring matching parentheses.
-
-#+begin_src emacs-lisp
-  (use-package rainbow-delimiters)
-#+end_src
-
-All the lisps have some shared features, so we want to do the same things for
-all of them. That includes using =paredit=, =rainbow-delimiters=, and
-highlighting the whole expression when point is on a parenthesis.
-
-#+begin_src emacs-lisp
-  (setq lispy-mode-hooks
-        '(clojure-mode-hook
-          emacs-lisp-mode-hook
-          lisp-mode-hook
-          racket-mode-hook
-          scheme-mode-hook))
-
-  (dolist (hook lispy-mode-hooks)
-    (add-hook hook (lambda ()
-                     (setq show-paren-style 'expression)
-                     (rainbow-delimiters-mode))))
-#+end_src
-
-If I'm writing in Emacs lisp I'd like to use =eldoc-mode= to display
-documentation.
-
-#+begin_src emacs-lisp
-  (use-package eldoc
-    :config
-    (add-hook 'emacs-lisp-mode-hook 'eldoc-mode))
-#+end_src
-
-I also like using =flycheck-package= to ensure that my Elisp packages are
-correctly formatted.
-
-#+begin_src emacs-lisp
-  (use-package flycheck-package)
-
-  (eval-after-load 'flycheck
-    '(flycheck-package-setup))
-#+end_src
 
 ** Python
 
 #+begin_src emacs-lisp
   (use-package python-mode)
-#+end_src
-
-Add =~/.local/bin= to load path. That's where =virtualenv= is installed, and
-we'll need that for =jedi=.
-
-#+begin_src emacs-lisp
-;  (hrs/append-to-path "~/.local/bin")
 #+end_src
 
 Enable =elpy=. This provides automatic indentation, auto-completion, syntax
@@ -295,71 +157,6 @@ Use =flycheck= for syntax checking:
 
 #+begin_src emacs-lisp
   (add-hook 'elpy-mode-hook 'flycheck-mode)
-#+end_src
-
-Format code according to PEP8 on save:
-
-#+begin_src emacs-lisp
-  (use-package py-autopep8)
-  (require 'py-autopep8)
-  (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
-#+end_src
-
-Configure Jedi along with the associated =company= mode:
-
-#+begin_src emacs-lisp
-  (use-package company-jedi)
-  (add-to-list 'company-backends 'company-jedi)
-
-  (add-hook 'python-mode-hook 'jedi:setup)
-  (setq jedi:complete-on-dot t)
-#+end_src
-
-** =sh=
-
-Indent with 2 spaces.
-
-#+begin_src emacs-lisp
-  (add-hook 'sh-mode-hook
-            (lambda ()
-              (setq sh-basic-offset 2
-                    sh-indentation 2)))
-#+end_src
-
-** Scala
-
-Ensure that =scala-mode= and =sbt-mode= are installed.
-
-#+begin_src emacs-lisp
-  (use-package scala-mode
-    :interpreter
-    ("scala" . scala-mode))
-
-  (use-package sbt-mode
-    :commands sbt-start sbt-command
-    :config
-    (substitute-key-definition
-     'minibuffer-complete-word
-     'self-insert-command
-     minibuffer-local-completion-map))
-
-  (use-package hydra)
-#+end_src
-
-Don't show the startup message with launching ENSIME:
-
-#+begin_src emacs-lisp
-  (setq ensime-startup-notification nil)
-#+end_src
-
-** YAML
-
-Ensure that we always use =fixed-pitch= fonts for YAML.
-
-#+begin_src emacs-lisp
-  (use-package yaml-mode
-    :config
-    (add-hook 'yaml-mode-hook (lambda () (variable-pitch-mode 0))))
 #+end_src
 
 ** C/C++
@@ -506,13 +303,7 @@ buffers.
   (global-set-key (kbd "C-h f") #'helpful-callable)
   (global-set-key (kbd "C-h v") #'helpful-variable)
   (global-set-key (kbd "C-h k") #'helpful-key)
-;  (evil-define-key 'normal helpful-mode-map (kbd "q") 'quit-window)
-#+end_src
 
-** Look for executables in =/usr/local/bin=
-
-#+begin_src emacs-lisp
-  ;(hrs/append-to-path "/usr/local/bin")
 #+end_src
 
 ** Save my location within a file
@@ -577,139 +368,6 @@ If the new path's directories does not exist, create them."
 (setq make-backup-file-name-function 'my-backup-file-name)
 #+end_src
 
-* Latex
-** Adds colors in org-mode
-
-#+begin_src emacs-lisp
-
-;;; org-colored-text.el --- Colored text for org-mode  -*- lexical-binding: t; -*-
-
-;; Copyright (C) 2016  John Kitchin
-
-;; Author: John Kitchin <jkitchin@andrew.cmu.edu>
-;; Keywords:
-
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; Commentary:
-
-;;
-
-;;; Code:
-(use-package ov)
-
-(org-add-link-type
- "color"
- (lambda (path)
-   "No follow action.")
- (lambda (color description backend)
-   (cond
-    ((eq backend 'html)
-     (let ((rgb (assoc color color-name-rgb-alist))
-	   r g b)
-       (if rgb
-	   (progn
-	     (setq r (* 255 (/ (nth 1 rgb) 65535.0))
-		   g (* 255 (/ (nth 2 rgb) 65535.0))
-		   b (* 255 (/ (nth 3 rgb) 65535.0)))
-	     (format "<span style=\"color: rgb(%s,%s,%s)\">%s</span>"
-		     (truncate r) (truncate g) (truncate b)
-		     (or description color)))
-	 (format "No Color RGB for %s" color)))))))
-
-(defun next-color-link (limit)
-  (when (re-search-forward
-	 "color:[a-zA-Z]\\{2,\\}" limit t)
-    (forward-char -2)
-    (let* ((next-link (org-element-context))
-	   color beg end post-blanks)
-      (if next-link
-	  (progn
-	    (setq color (org-element-property :path next-link)
-		  beg (org-element-property :begin next-link)
-		  end (org-element-property :end next-link)
-		  post-blanks (org-element-property :post-blank next-link))
-	    (set-match-data
-	     (list beg
-		   (- end post-blanks)))
-	    (ov-clear beg end 'color)
-	    (ov beg
-		(- end post-blanks)
-	     'color t
-	     'face
-	     `((:foreground ,color)))
-	    (goto-char end))
-	(goto-char limit)
-	nil))))
-
-
-(add-hook 'org-mode-hook
-	  (lambda ()
-	    (font-lock-add-keywords
-	     nil
-	     '((next-color-link (0 'org-link t)))
-	     t)))
-
-
-(provide 'org-colored-text)
-;;; org-colored-text.el ends here
-
-#+end_src
-
-** Allows previous colors to be exported in LaTeX
-#+begin_src emacs-lisp
-
-(require 'org-colored-text)
-
-;; Taken and adapted from org-colored-text
-(org-add-link-type
- "color"
- (lambda (path)
-   "No follow action.")
- (lambda (color description backend)
-   (cond
-    ((eq backend 'latex)                  ; added by TL
-     (format "{\\color{%s}%s}" color description)) ; added by TL
-    ((eq backend 'html)
-     (let ((rgb (assoc color color-name-rgb-alist))
-           r g b)
-       (if rgb
-           (progn
-             (setq r (* 255 (/ (nth 1 rgb) 65535.0))
-                   g (* 255 (/ (nth 2 rgb) 65535.0))
-                   b (* 255 (/ (nth 3 rgb) 65535.0)))
-             (format "<span style=\"color: rgb(%s,%s,%s)\">%s</span>"
-                     (truncate r) (truncate g) (truncate b)
-                     (or description color)))
-         (format "No Color RGB for %s" color)))))))
-
-#+end_src
-
-* SSH / Git
-** Setup tramp
-#+begin_src emacs_lisp
-
-(setq tramp_default_method "sshx")
-
-#+end_src
-** Magit
-
-Use Magit to add git shortcuts in emacs
-#+begin_src emacs-lisp
-  (use-package magit)
-#+end_src
-
 * Terminal
 
 Set default terminal to Zsh
@@ -727,32 +385,24 @@ I'd like to open =file:= links in Org with the applications defined in my
 tells Org to open those links with the mailcap-defined applications.
 
 #+begin_src emacs-lisp
-  ;; (use-package org
-  ;;   :ensure org-plus-contrib
-  ;;   :config
-  ;;   (require 'org-tempo)
+ (use-package org
+   :config
+   (require 'org-tempo)
 
-  ;;   (add-hook 'org-mode-hook
-  ;;             '(lambda ()
-  ;;                (setq mailcap-mime-data '())
-  ;;                (mailcap-parse-mailcap "~/.mailcap")
-  ;;                (setq org-file-apps
-  ;;                      '((remote . emacs)
-  ;;                        ("mobi" . "fbreader %s")
-  ;;                        (system . mailcap)
-  ;;                        ("md" . emacs)
-  ;;                        ("org" . emacs)
-  ;;                        (t . mailcap))))))
-  (use-package org)
+   (add-hook 'org-mode-hook
+             '(lambda ()
+                (setq mailcap-mime-data '())
+                (mailcap-parse-mailcap "~/.mailcap")
+                (setq org-file-apps
+                      '((remote . emacs)
+                        ("mobi" . "fbreader %s")
+                        (system . mailcap)
+                        ("md" . emacs)
+                        ("org" . emacs)
+                        (t . mailcap))))))
+;  (use-package org)
 #+end_src
 
-#+RESULTS:
-
-I'd like the initial scratch buffer to be in Org:
-
-#+begin_src emacs-lisp
-  (setq initial-major-mode 'org-mode)
-#+end_src
 
 Force org mode files to be indented properly
 
@@ -760,7 +410,7 @@ Force org mode files to be indented properly
   (setq org-startup-indented t)
 #+end_src
 
-Enable the /BIND/ keyword in org
+Enable the /BIND/ keyword in org (to add local shortcuts in one org file, suc as todo list)
 #+begin_src emacs-lisp
   (setq org-export-allow-bind-keywords t)
 #+end_src
@@ -962,28 +612,5 @@ I'm usually actually in an org document.
             (lambda ()
               (LaTeX-math-mode)
               (setq TeX-master t)))
-#+end_src
-
-* Org-roam
-
-#+begin_src emacs-lisp
-
-  (use-package org-roam
-    :after org
-    :init (setq org-roam-v2-ack t) ;; Acknowledge V2 upgrade
-    :custom
-    (org-roam-directory (file-truename "~/org-roam"))
-    :config
-    (org-roam-setup)
-    :bind (("C-c n f" . org-roam-node-find)
-           ("C-c n g" . org-roam-graph)
-           ("C-c n r" . org-roam-node-random)		    
-           (:map org-mode-map
-                 (("C-c n i" . org-roam-node-insert)
-                  ("C-c n o" . org-id-get-create)
-                  ("C-c n t" . org-roam-tag-add)
-                  ("C-c n a" . org-roam-alias-add)
-                  ("C-c n l" . org-roam-buffer-toggle)))))
-
 #+end_src
 
