@@ -1,0 +1,33 @@
+#!/bin/bash
+
+vol=$(amixer -D pulse sget Master | grep Mono: | cut -d\  -f 6,8)
+pcm_l=$(amixer -D pulse sget Master | grep Left: | cut -d\  -f 7)
+pcm_r=$(amixer -D pulse sget Master | grep Right: | cut -d\  -f 7)
+head_speak=""
+
+amixer -c 0 sget Headphone | grep '\[on\]' > /dev/null
+if [ "$?" -eq 0 ]; then
+  head_speak="+H"
+fi
+
+amixer -c 0 sget Speaker | grep '\[on\]' > /dev/null
+if [ "$?" -eq 0 ]; then
+  head_speak="$head_speak+S"
+fi
+
+if [ "$pcm_r" = "$pcm_l" ]; then
+  pcm=$pcm_r
+else
+  pcm="$pcm_l|$pcm_r"
+fi
+
+full_text="$(echo "$vol~$pcm" | tr -d '[]onf ') $(echo $head_speak)"
+
+test=$(echo $vol | grep 'on')
+if [ "$?" -eq 0 ]; then
+  color="#00FF00"
+else
+  color="#FF0000"
+fi
+
+echo "{\"name\":\"vol\",\"full_text\":\"$full_text\",\"color\":\"$color\"},"

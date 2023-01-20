@@ -1,0 +1,67 @@
+#!/bin/bash
+
+short_out() {
+  if [[ -n "$1" ]]; then
+    extra="$1"
+  fi
+  title=$(cmus-remote -Q \
+            | grep -E 'tag artist|tag title' \
+            | tr -d '\n' \
+            | sed 's/^tag artist \(.*\)tag title \(.*\)$/\1 ~ \2/g'
+       )
+
+  case "$status" in
+    "stopped")
+      text="$stop_s "
+      color="#FF0000"
+      ;;
+    "paused")
+      text="$pause_s "
+      color="#FFFFFF"
+      ;;
+    "playing")
+      text="$play_s "
+      color="#00FF00"
+      ;;
+  esac
+
+  echo "{\"name\":\"cmus\",\"full_text\":\"$text$title$extra\",\"color\":\"$color\"},"
+}
+
+verbose_out() {
+  duration=$(cmus-remote -Q | grep 'duration' | sed 's/duration //g')
+  position=$(cmus-remote -Q | grep 'position' | sed 's/position //g')
+  state=" ("$(date -d "@$position" '+%M:%S')"/"$(date -d "@$duration" '+%M:%S')")"
+  out "$state"
+}
+
+unset method
+while getopts "f:a" arg; do
+  case $arg in
+    f)
+      case "$OPTARG" in
+        "verbose") method=verbose_out ;;
+        "short") method=short_out ;;
+        *) echo "Wrong format; $OPTARG" >&2; exit 1 ;;
+      esac
+      ;;
+    a) play_s=">"; pause_s="|"; stop_s="#" ;;
+  esac
+done
+
+if [[ -z "$play_s" ]]; then
+  play_s=""
+  pause_s=""
+  stop_s=""
+fi
+
+if [[ -z "$method" ]]; then
+  method=short_out
+fi
+
+status=$(cmus-remote -Q 2> /dev/null | grep status | cut -d\  -f 2)
+if [ "$status" = "" ]; then
+  echo ""
+else
+  $method
+fi

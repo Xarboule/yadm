@@ -1,0 +1,39 @@
+#!/bin/bash
+
+trap maj 10
+
+if [ -z "$BLOCK_INSTANCE" ]; then
+  bright_path="/sys/class/backlight/intel_backlight/brightness"
+  max_bright_path="/sys/class/backlight/intel_backlight/max_brightness"
+else
+  bright_path="$BLOCK_INSTANCE"
+  max_bright_path="${BLOCK_INSTANCE/brightness/max_brightness}"
+fi
+
+maj() {
+  bright=$(expr $(cat "$bright_path") \* 100)
+  bright=$(expr $bright / $(cat "$max_bright_path"))
+
+  if [ $bright -le 20 ]; then
+    color="#00FF00"
+  else
+    if [ $bright -le 60 ]; then
+      color="#FFFFFF"
+    else
+      color="#FF0000"
+    fi
+  fi
+
+  printf "{\"name\":\"brightness\",\"full_text\":\"$bright%% ($(cat $bright_path))\",\"color\":\"$color\"},"
+  sleep 1
+  printf "\r"
+}
+
+sleep infinity &
+sleep_pid=$!
+
+trap "kill -TERM $sleep_pid; exit" TERM INT
+
+while true; do
+  wait $sleep_pid
+done

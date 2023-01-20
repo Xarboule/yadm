@@ -1,0 +1,100 @@
+#!/bin/bash
+
+verbose_out() {
+  printf "{\"name\":\"mail\",\"full_text\":\" "
+  for (( i=1 ; i < $var ; i++ )); do
+    printf "[%s %2d] " "${names[$i]}" ${table[$i]}
+  done
+  printf "$sync\",\"color\":\"$color\"},"
+}
+
+short_out() {
+  printf "{\"name\":\"mail\",\"full_text\":\"["
+  for (( i=1 ; i < $(expr $var - 1); i++ )); do
+    printf "%2d|" ${table[$i]}
+  done
+    printf "%2d" ${table[$(expr $var - 1)]}
+  printf "] $sync\",\"color\":\"$color\"},"
+}
+
+minimal_out() {
+  printf "{\"name\":\"mail\",\"full_text\":\"%3d $sync\",\"color\":\"$color\"}," "$sum"
+}
+
+pango_out() {
+  printf "{\"name\":\"mail\",\"full_text\":\" "
+  for (( i=1 ; i < $var ; i++ )); do
+    printf "%s<sup>+%-2d</sup> " "${names[$i]}" ${table[$i]}
+  done
+  printf "$sync\",\"color\":\"$color\"},"
+}
+
+unset wdir
+unset method
+while getopts "f:d:a" arg; do
+  case $arg in
+    f)
+      case "$OPTARG" in
+        "short") method=short_out ;;
+        "verbose") method=verbose_out ;;
+        "minimal") method=minimal_out ;;
+        "pango") method=pango_out ;;
+        *) echo "Wrong format: $OPTARG" >&2; exit 1 ;;
+      esac
+      ;;
+    d) wdir="$OPTARG" ;;
+    a) sync_on="(+)"; sync_off="(-)";;
+  esac
+done
+
+if [[ -z "$sync_on" ]]; then
+  sync_on=""
+  sync_off="  "
+fi
+
+declare -i var
+declare -i num
+declare -i sum
+running=`systemctl --user --state=waiting --no-legend | grep mbsync.timer`
+if [ -z "$running" ]; then
+  sync=$sync_off
+else
+  sync=$sync_on
+fi
+
+if [[ -z "$wdir" ]]; then
+  if [[ -n "$BLOCK_INSTANCE" ]]; then
+    wdir="$BLOCK_INSTANCE"
+  else
+    echo "No working directory specified" >&2
+    exit 1
+  fi
+fi
+
+if [[ -z "$method" ]]; then
+  method=short_out
+fi
+
+cd "$wdir"
+echo $(pwd)
+var=1
+for dir in *
+do
+  num=$(find "$dir" -regex '[^[]*/new/.*' -type f | wc -l)
+  sum=sum+num
+  names[$var]="$dir"
+  table[$var]=$num
+  var=var+1
+done
+
+if [ $sum -eq 0 ]; then
+  color="#FFFFFF"
+else
+  if [ $sum -le 5 ]; then
+    color="#00FF00"
+  else
+    color="#FF0000"
+  fi
+fi
+
+$method
