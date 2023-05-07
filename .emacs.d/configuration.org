@@ -14,13 +14,13 @@
   #+end_src
 
 I use =use-package= to install and configure my packages. My =init.el= includes the
-  initial setup for =package.el= and ensures that =use-package= is installed, since I
-  wanna do that right away.
+initial setup for =package.el= and ensures that =use-package= is installed, since I
+wanna do that right away.
 
-  This makes sure that =use-package= will install the package if it's not already
-  available. It also means that I should be able to open Emacs for the first time
-  on a fresh Debian box and have my whole environment automatically installed. I'm
-  not /totally/ sure about that, but we're gettin' close.
+This makes sure that =use-package= will install the package if it's not already
+available. It also means that I should be able to open Emacs for the first time
+on a fresh Debian box and have my whole environment automatically installed. I'm
+not /totally/ sure about that, but we're gettin' close.
 
 #+begin_src emacs-lisp
     (require 'use-package-ensure)
@@ -44,22 +44,104 @@ warnings.
   (setq byte-compile-warnings '(cl-functions))
 #+end_src
 
-* Utility
+* Performance
+** Garbage collector
 
-	#+begin_src emacs-lisp
-		(defun hrs/append-to-path (path)
-			"Add a path both to the $PATH variable and to Emacs' exec-path."
-			(setenv "PATH" (concat (getenv "PATH") ":" path))
-			(add-to-list 'exec-path path))
-	#+end_src
+Reduce the frequency of garbage collection.
+
+#+begin_src emacs-lisp
+;; Using garbage magic hack.
+ (use-package gcmh
+   :config
+   (gcmh-mode 1))
+;; Setting garbage collection threshold
+(setq gc-cons-threshold 402653184
+      gc-cons-percentage 0.6)
+
+;; Profile emacs startup
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "*** Emacs loaded in %s with %d garbage collections."
+                     (format "%.2f seconds"
+                             (float-time
+                              (time-subtract after-init-time before-init-time)))
+                     gcs-done)))
+
+;; Silence compiler warnings as they can be pretty disruptive (setq comp-async-report-warnings-errors nil)
+#+end_src
+
+* Utility
+** Dashboard
+
+#+begin_src emacs-lisp
+(use-package dashboard
+  :init      ;; tweak dashboard config before loading it
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  (setq dashboard-banner-logo-title "Emacs Is More Than A Text Editor!")
+  ;;(setq dashboard-startup-banner 'logo) ;; use standard emacs logo as banner
+  (setq dashboard-startup-banner "~/.emacs.d/emacs-dash.png")  ;; use custom image as banner
+  (setq dashboard-center-content nil) ;; set to 't' for centered content
+  (setq dashboard-items '((recents . 5)
+                          (agenda . 5 )
+                          (bookmarks . 3)
+                          (projects . 3)
+                          (registers . 3)))
+  :config
+  (dashboard-setup-startup-hook)
+  (dashboard-modify-heading-icons '((recents . "file-text")
+			      (bookmarks . "book"))))
+#+end_src
+
+** Dashboard in emacsclient
+
+#+begin_src emacs-lisp
+(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun hrs/append-to-path (path)
+    "Add a path both to the $PATH variable and to Emacs' exec-path."
+    (setenv "PATH" (concat (getenv "PATH") ":" path))
+    (add-to-list 'exec-path path))
+#+end_src
 
 * UI preferences
 
 ** Fonts
+
+Requires the ~ttf-ubuntu-nerd~ package.
+
 #+begin_src emacs-lisp
-  (add-to-list 'default-frame-alist '(font .  "Inconsolata-16" ))
-  (set-face-attribute 'default t :font  "Inconsolata-16" )
+(set-face-attribute 'default nil
+  :font "Source Code Pro"
+  :height 110
+  :weight 'medium)
+(set-face-attribute 'variable-pitch nil
+  :font "Ubuntu Nerd Font"
+  :height 120
+  :weight 'medium)
+(set-face-attribute 'fixed-pitch nil
+  :font "Source Code Pro"
+  :height 110
+  :weight 'medium)
+;; Makes commented text and keywords italics.
+;; This is working in emacsclient but not emacs.
+;; Your font must have an italic face available.
+(set-face-attribute 'font-lock-comment-face nil
+  :slant 'italic)
+(set-face-attribute 'font-lock-keyword-face nil
+  :slant 'italic)
+
+;; Uncomment the following line if line spacing needs adjusting.
+;; (setq-default line-spacing 0.12)
+
+;; Needed if using emacsclient. Otherwise, your fonts will be smaller than expected.
+(add-to-list 'default-frame-alist '(font . "Source Code Pro-16"))
+;; changes certain keywords to symbols, such as lamda!
+;; (setq global-prettify-symbols-mode t)
 #+end_src
+
 ** Line numbers
 
 #+begin_src emacs-lisp
@@ -102,11 +184,11 @@ that:
 #+end_src
 ** Load up a theme
 
-Zenburn theme.
-   
 #+begin_src emacs-lisp
-  (use-package zenburn-theme)
-  (load-theme 'zenburn t)
+(use-package doom-themes)
+(setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+      doom-themes-enable-italic t) ; if nil, italics is universally disabled
+(load-theme 'doom-one t)
 #+end_src
 
 ** Scroll conservatively
@@ -127,6 +209,11 @@ pairing or presenting code.
 
 #+begin_src emacs-lisp
   (global-hl-line-mode)
+#+end_src
+
+** Writeroom
+#+begin_src emacs-lisp
+(use-package writeroom-mode)
 #+end_src
 
 * Set personal information
@@ -380,28 +467,34 @@ Set default terminal to Zsh
 Including =org-tempo= restores the =<s=-style easy-templates that were
 deprecated in Org 9.2.
 
-I'd like to open =file:= links in Org with the applications defined in my
-[[file:~/.dotfiles/email/.mailcap][mailcap]]. This clears the existing MIME mapping, parses my personal mailcap, and
-tells Org to open those links with the mailcap-defined applications.
-
 #+begin_src emacs-lisp
- (use-package org
-   :config
-   (require 'org-tempo)
-
-   (add-hook 'org-mode-hook
-             '(lambda ()
-                (setq mailcap-mime-data '())
-                (mailcap-parse-mailcap "~/.mailcap")
-                (setq org-file-apps
-                      '((remote . emacs)
-                        ("mobi" . "fbreader %s")
-                        (system . mailcap)
-                        ("md" . emacs)
-                        ("org" . emacs)
-                        (t . mailcap))))))
-;  (use-package org)
+(use-package org-tempo
+  :ensure nil) ;; tell use-package not to try to install org-tempo since it's already there.
 #+end_src
+
+
+# I'd like to open =file:= links in Org with the applications defined in my
+# [[file:~/.dotfiles/email/.mailcap][mailcap]]. This clears the existing MIME mapping, parses my personal mailcap, and
+# tells Org to open those links with the mailcap-defined applications.
+
+# #+begin_src emacs-lisp
+#  (use-package org
+#    :config
+#    (require 'org-tempo)
+
+#    (add-hook 'org-mode-hook
+#              '(lambda ()
+#                 (setq mailcap-mime-data '())
+#                 (mailcap-parse-mailcap "~/.mailcap")
+#                 (setq org-file-apps
+#                       '((remote . emacs)
+#                         ("mobi" . "fbreader %s")
+#                         (system . mailcap)
+#                         ("md" . emacs)
+#                         ("org" . emacs)
+#                         (t . mailcap))))))
+# ;  (use-package org)
+# #+end_src
 
 
 Force org mode files to be indented properly
@@ -414,7 +507,6 @@ Enable the /BIND/ keyword in org (to add local shortcuts in one org file, suc as
 #+begin_src emacs-lisp
   (setq org-export-allow-bind-keywords t)
 #+end_src
-
 
 ** Display preferences
 
@@ -614,3 +706,18 @@ I'm usually actually in an org document.
               (setq TeX-master t)))
 #+end_src
 
+* Terminal
+** Vterm
+
+#+begin_src emacs-lisp
+(use-package vterm)
+(setq shell-file-name "/usr/bin/zsh"
+      vterm-max-scrollback 5000)
+#+end_src
+* GC
+Reset the GC to a faster frequency.
+
+#+begin_src emacs-lisp
+;; Make gc pauses faster by decreasing the threshold.
+(setq gc-cons-threshold (* 2 1000 1000))
+#+end_src
