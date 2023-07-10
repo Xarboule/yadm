@@ -1,33 +1,5 @@
 # https://gist.github.com/5310/9b98f8591f404b21d8c7e52739961070
 # https://github.com/kragen/xcompose
-
-# To add to .xinitrc:
-
-# # Keyboard / mouse / tablet ...
-# # https://unix.stackexchange.com/questions/253489/how-to-set-the-keymap-for-keyboards-that-are-plugged-in-later
-# { echo "XIDeviceEnabled XISlaveKeyboard"; inputplug -d -c /bin/echo; } |
-# while read event
-# do
-# 	case $event in XIDeviceEnabled*XISlaveKeyboard*)
-# 		RATE=80
-# 		DELAY=260
-
-# 		setxkbmap -option compose:ralt
-
-# 		xset r rate $DELAY $RATE
-
-# 		KEYBOARD=org.mate.peripherals-keyboard
-# 		gsettings set $KEYBOARD rate $RATE
-# 		gsettings set $KEYBOARD delay $DELAY
-# 		;;
-
-# 	esac
-# 	sleep 0.1
-# done &
-
-
-
-
 #
 # /usr/share/X11/locale/en_US.UTF-8/Compose
 #include "%L"
@@ -44,9 +16,18 @@ include "%H/.XCompose_filtered"
 <Multi_key> <u>: "ù" ugrave # LATIN SMALL LETTER U WITH GRAVE
 <Multi_key> <c>: "ç" ccedilla # LATIN SMALL LETTER C WITH CEDILLA
 
+<Multi_key> <A>	: "À"	Agrave # LATIN CAPITAL LETTER A WITH GRAVE
+<Multi_key> <E> : "É"	Eacute # LATIN CAPITAL LETTER E WITH ACUTE
+<Multi_key> <U>	: "Ù"	Ugrave # LATIN CAPITAL LETTER U WITH GRAVE
+<Multi_key> <C>	: "Ç"	Ccedilla # LATIN CAPITAL LETTER C WITH CEDILLA
+
 # None of the default bindings use double tap of Multi_key
 <Multi_key> <Multi_key> <e>: "è" egrave # LATIN SMALL LETTER E WITH GRAVE
 <Multi_key> <Multi_key> <a> <e>: "æ" ae # LATIN SMALL LETTER AE
+
+<Multi_key> <Multi_key> <E> : "È"	Egrave # LATIN CAPITAL LETTER E WITH GRAVE
+<Multi_key> <Multi_key> <A> <E>	: "Æ"	AE # LATIN CAPITAL LETTER AE
+
 # Maintenant qu'on en a plus besoin pour le c cédille... mais en fait pose ensuite problème
 # pour le c cédille majuscule (Ç)... à voir...
 # <Multi_key> <comma>: "è" egrave # LATIN SMALL LETTER E WITH GRAVE
@@ -63,6 +44,8 @@ include "%H/.XCompose_filtered"
 <Multi_key> <Tab> <i>: "î" icircumflex # LATIN SMALL LETTER I WITH CIRCUMFLEX
 <Multi_key> <Tab> <o>: "ô" ocircumflex # LATIN SMALL LETTER O WITH CIRCUMFLEX
 <Multi_key> <Tab> <u>: "û" ucircumflex # LATIN SMALL LETTER U WITH CIRCUMFLEX
+
+<Multi_key> <Tab> <E>: "Ê"	Ecircumflex # LATIN CAPITAL LETTER E WITH CIRCUMFLEX
 
 # Greek letters.
 <Multi_key> <g> <a>		: "α"	U03B1		# GREEK SMALL LETTER ALPHA

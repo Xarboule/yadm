@@ -205,7 +205,7 @@ exec --no-startup-id "nitrogen --restore"
 exec --no-startup-id "$scripts/default_sound"
 exec --no-startup-id blueman-applet&
 exec --no-startup-id nm-applet&
-exec --no-startup-id twmnd&
+#exec --no-startup-id twmnd&
 exec --no-startup-id "export BAT_NUMBER=2"
 #exec_always --no-startup-id $HOME/.config/polybar/launch.sh
 exec --no-startup-id /usr/lib/geoclue-2.0/demos/agent

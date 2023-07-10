@@ -93,7 +93,7 @@ Reduce the frequency of garbage collection.
 			      (bookmarks . "book"))))
 #+end_src
 
-** Dashboard in emacsclient
+** Dasbhoard in emacsclient
 
 #+begin_src emacs-lisp
 (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
@@ -106,7 +106,23 @@ Reduce the frequency of garbage collection.
     (add-to-list 'exec-path path))
 #+end_src
 
+** Helm
+#+begin_src emacs-lisp
+;; sample `helm' configuration use https://github.com/emacs-helm/helm/ for details
+(helm-mode)
+(require 'helm-xref)
+(define-key global-map [remap find-file] #'helm-find-files)
+(define-key global-map [remap execute-extended-command] #'helm-M-x)
+(define-key global-map [remap switch-to-buffer] #'helm-mini)
+
+#+end_src
 * UI preferences
+
+** Disable beep thinkpad
+#+begin_src emacs-lisp
+(setq visible-bell 1)
+#+end_src
+ 
 
 ** Fonts
 
@@ -171,8 +187,8 @@ I don't usually use the menu or scroll bar, and they take up useful space.
 Only for emacs GUI.
 
 #+begin_src emacs-lisp
-  ;(tool-bar-mode 0)
-  ;(menu-bar-mode 0)
+  (tool-bar-mode 0)
+  (menu-bar-mode 0)
   ;(scroll-bar-mode -1)
 #+end_src
 
@@ -226,130 +242,138 @@ pairing or presenting code.
 
 * Programming environments
 
+** LSP
+
+This configures the LSP-mode package
+In order for it to work, you need:
+- clangd or C/C++ ([[https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/][Tutorial]])
+- rust-analyser for Rust
+- texlab for LaTeX
+  
+#+begin_src emacs-lisp
+  (setq package-selected-packages '(lsp-mode yasnippet lsp-treemacs helm-lsp
+                                             projectile hydra flycheck company
+                                             avy which-key helm-xref dap-mode))
+
+  (when (cl-find-if-not #'package-installed-p package-selected-packages)
+    (package-refresh-contents)
+    (mapc #'package-install package-selected-packages))
+
+  (which-key-mode)
+  (add-hook 'c-mode-hook 'lsp)
+  (add-hook 'c++-mode-hook 'lsp)
+  (add-hook 'rust-mode-hook 'lsp)
+  (add-hook 'TeX-mode-hook 'lsp)
+
+  (setq gc-cons-threshold (* 100 1024 1024)
+        read-process-output-max (* 1024 1024)
+        treemacs-space-between-root-nodes nil
+        company-idle-delay 0.0
+        company-minimum-prefix-length 1
+        lsp-idle-delay 0.1)  ;; clangd is fast
+
+  (with-eval-after-load 'lsp-mode
+    (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
+    (require 'dap-cpptools)
+    (yas-global-mode))
+
+
+#+end_src
+
 ** Python
 
 #+begin_src emacs-lisp
-  (use-package python-mode)
+  ;(use-package python-mode)
 #+end_src
 
 Enable =elpy=. This provides automatic indentation, auto-completion, syntax
 checking, etc.
 
 #+begin_src emacs-lisp
-  (use-package elpy)
-  (elpy-enable)
+  ;(use-package elpy)
+  ;(elpy-enable)
 #+end_src
 
 Use =flycheck= for syntax checking:
 
 #+begin_src emacs-lisp
-  (add-hook 'elpy-mode-hook 'flycheck-mode)
+  ;(add-hook 'elpy-mode-hook 'flycheck-mode)
 #+end_src
 
-** C/C++
-
-Use clangd as a LSP server ([[https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/][Tutorial]])
-Add helm.
-
-#+begin_src emacs-lisp
-(setq package-selected-packages '(lsp-mode yasnippet lsp-treemacs helm-lsp
-    projectile hydra flycheck company avy which-key helm-xref dap-mode))
-
-(when (cl-find-if-not #'package-installed-p package-selected-packages)
-  (package-refresh-contents)
-  (mapc #'package-install package-selected-packages))
-
-;; sample `helm' configuration use https://github.com/emacs-helm/helm/ for details
-(helm-mode)
-(require 'helm-xref)
-(define-key global-map [remap find-file] #'helm-find-files)
-(define-key global-map [remap execute-extended-command] #'helm-M-x)
-(define-key global-map [remap switch-to-buffer] #'helm-mini)
-
-(which-key-mode)
-(add-hook 'c-mode-hook 'lsp)
-(add-hook 'c++-mode-hook 'lsp)
-
-(setq gc-cons-threshold (* 100 1024 1024)
-      read-process-output-max (* 1024 1024)
-      treemacs-space-between-root-nodes nil
-      company-idle-delay 0.0
-      company-minimum-prefix-length 1
-      lsp-idle-delay 0.1)  ;; clangd is fast
-
-(with-eval-after-load 'lsp-mode
-  (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
-  (require 'dap-cpptools)
-  (yas-global-mode))
-
-
-#+end_src
 
 ** Rust
 
 Setup for Rust ([[https://robert.kra.hn/posts/rust-emacs-setup/][tutorial]])
 
 #+begin_src emacs-lisp
-      ;; rust-mode
-      ;; https://github.com/rust-lang/rust-mode
-      (use-package rust-mode
-        :bind ( :map rust-mode-map
-                     (("C-c C-t" . racer-describe)
-                      ([?\t] .  company-indent-or-complete-common)))
-        :config
-        (progn
-          ;; add flycheck support for rust (reads in cargo stuff)
-          ;; https://github.com/flycheck/flycheck-rust
-          (use-package flycheck-rust)
+  ;;       ;; rust-mode
+  ;;       ;; https://github.com/rust-lang/rust-mode
+  ;;       (use-package rust-mode
+  ;;         :bind ( :map rust-mode-map
+  ;;                      (("C-c C-t" . racer-describe)
+  ;;                       ([?\t] .  company-indent-or-complete-common)))
+  ;;         :config
+  ;;         (progn
+  ;;           ;; add flycheck support for rust (reads in cargo stuff)
+  ;;           ;; https://github.com/flycheck/flycheck-rust
+  ;;           (use-package flycheck-rust)
 
-          ;; cargo-mode for all the cargo related operations
-          ;; https://github.com/kwrooijen/cargo.el
-          (use-package cargo
-            :hook (rust-mode . cargo-minor-mode)
-            :bind
-            ("C-c C-c C-n" . cargo-process-new)) ;; global binding
+  ;;           ;; cargo-mode for all the cargo related operations
+  ;;           ;; https://github.com/kwrooijen/cargo.el
+  ;;           (use-package cargo
+  ;;             :hook (rust-mode . cargo-minor-mode)
+  ;;             :bind
+  ;;             ("C-c C-c C-n" . cargo-process-new)) ;; global binding
 
-            ;;; separedit ;; via https://github.com/twlz0ne/separedit.el
-        ;; (use-package separedit
-        ;;   :straight (separedit :type git :host github :repo "idcrook/separedit.el")
-        ;;   :config
-        ;;   (progn
-        ;;     (define-key prog-mode-map (kbd "C-c '") #'separedit)
-        ;;     (setq separedit-default-mode 'markdown-mode)))
+  ;;             ;;; separedit ;; via https://github.com/twlz0ne/separedit.el
+  ;;         ;; (use-package separedit
+  ;;         ;;   :straight (separedit :type git :host github :repo "idcrook/separedit.el")
+  ;;         ;;   :config
+  ;;         ;;   (progn
+  ;;         ;;     (define-key prog-mode-map (kbd "C-c '") #'separedit)
+  ;;         ;;     (setq separedit-default-mode 'markdown-mode)))
 
 
-        ;; racer-mode for getting IDE like features for rust-mode
-        ;; https://github.com/racer-rust/emacs-racer
-;;(use-package racer
-;;  :hook (rust-mode . racer-mode)
-;;  :config
-;;  (progn
-;;    ;; package does this by default ;; set racer rust source path environment variable
-;;    ;; (setq racer-rust-src-path (getenv "RUST_SRC_PATH"))
-;;    (defun my-racer-mode-hook ()
-;;      (set (make-local-variable 'company-backends)
-;;           '((company-capf company-files)))
-;;      (setq company-minimum-prefix-length 1)
-;;      (setq indent-tabs-mode nil))
-;;
-;;    (add-hook 'racer-mode-hook 'my-racer-mode-hook)
-;;
-;;    ;; enable company and eldoc minor modes in rust-mode (racer-mode)
-;;    (add-hook 'racer-mode-hook #'company-mode)
-;;    (add-hook 'racer-mode-hook #'eldoc-mode)))
-;;
-        (add-hook 'rust-mode-hook 'flycheck-mode)
-        (add-hook 'flycheck-mode-hook 'flycheck-rust-setup)
+  ;;         ;; racer-mode for getting IDE like features for rust-mode
+  ;;         ;; https://github.com/racer-rust/emacs-racer
+  ;; ;;(use-package racer
+  ;; ;;  :hook (rust-mode . racer-mode)
+  ;; ;;  :config
+  ;; ;;  (progn
+  ;; ;;    ;; package does this by default ;; set racer rust source path environment variable
+  ;; ;;    ;; (setq racer-rust-src-path (getenv "RUST_SRC_PATH"))
+  ;; ;;    (defun my-racer-mode-hook ()
+  ;; ;;      (set (make-local-variable 'company-backends)
+  ;; ;;           '((company-capf company-files)))
+  ;; ;;      (setq company-minimum-prefix-length 1)
+  ;; ;;      (setq indent-tabs-mode nil))
+  ;; ;;
+  ;; ;;    (add-hook 'racer-mode-hook 'my-racer-mode-hook)
+  ;; ;;
+  ;; ;;    ;; enable company and eldoc minor modes in rust-mode (racer-mode)
+  ;; ;;    (add-hook 'racer-mode-hook #'company-mode)
+  ;; ;;    (add-hook 'racer-mode-hook #'eldoc-mode)))
+  ;; ;;
+  ;;         (add-hook 'rust-mode-hook 'flycheck-mode)
+  ;;         (add-hook 'flycheck-mode-hook 'flycheck-rust-setup)
 
-        ;; format rust buffers on save using rustfmt
-        (add-hook 'before-save-hook
-                  (lambda ()
-                    (when (eq major-mode 'rust-mode)
-                      (rust-format-buffer))))))
+  ;;         ;; format rust buffers on save using rustfmt
+  ;;         (add-hook 'before-save-hook
+  ;;                   (lambda ()
+  ;;                     (when (eq major-mode 'rust-mode)
+  ;;                       (rust-format-buffer))))))
 
 #+end_src
 
-#+RESULTS:
+
+** LaTeX
+
+#+begin_src emacs-lisp
+  ;(require 'auctex-latexmk)
+  ;(auctex-latexmk-setup)
+#+end_src
+
+
 
 * Editing settings
 
