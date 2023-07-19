@@ -124,6 +124,11 @@ Reduce the frequency of garbage collection.
 #+end_src
  
 
+** Line wrap
+#+begin_src emacs-lisp
+(global-visual-line-mode t)
+#+end_src
+
 ** Fonts
 
 Requires the ~ttf-ubuntu-nerd~ package.
